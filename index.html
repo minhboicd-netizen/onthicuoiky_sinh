@@ -697,7 +697,7 @@
         : "w-full bg-gray-300 text-white font-bold py-4 rounded-xl cursor-not-allowed text-lg";
     }
 
-    // 5. RENDER HTML (GIAO DIỆN)
+   // 5. RENDER HTML (GIAO DIỆN)
     function renderApp() {
       const app = document.getElementById('app');
       
@@ -737,21 +737,44 @@
         questionHtml += `</div>`;
       }
 
-      // HTML cho Đúng/Sai
+      // HTML cho Đúng/Sai (ĐÃ CẬP NHẬT GIAO DIỆN HIỂN THỊ TỪNG Ý)
       if (currentQ.type === 'true_false') {
         questionHtml += `<div class="space-y-4">`;
         currentQ.statements.forEach((stmt, idx) => {
+          
+          // Kiểm tra xem ý này user làm đúng hay sai
+          const isStmtCorrect = (userTfAns[idx] === stmt.is_true);
+          
           let btnTrueClass = userTfAns[idx] === true ? "tf-selected" : "bg-white text-gray-600 border-gray-300";
           let btnFalseClass = userTfAns[idx] === false ? "tf-selected" : "bg-white text-gray-600 border-gray-300";
           
+          let rowFeedbackHtml = '';
+          let rowBorderClass = 'border-gray-200';
+
+          if (feedbackMode) {
+            if (isStmtCorrect) {
+                // Đổi viền xanh cho ý đúng
+                rowBorderClass = 'border-green-400 bg-green-50';
+                if (userTfAns[idx] === true) btnTrueClass += " correct-ans";
+                if (userTfAns[idx] === false) btnFalseClass += " correct-ans";
+                rowFeedbackHtml = `<div class="text-sm font-bold text-green-600 w-full sm:w-auto mt-2 sm:mt-0 text-right">✅ Bạn làm đúng ý này</div>`;
+            } else {
+                // Đổi viền đỏ cho ý sai
+                rowBorderClass = 'border-red-400 bg-red-50';
+                if (userTfAns[idx] === true) btnTrueClass += " wrong-ans";
+                if (userTfAns[idx] === false) btnFalseClass += " wrong-ans";
+                rowFeedbackHtml = `<div class="text-sm font-bold text-red-600 w-full sm:w-auto mt-2 sm:mt-0 text-right">❌ Sai (Đáp án: ${stmt.is_true ? 'Đúng' : 'Sai'})</div>`;
+            }
+          }
+
           questionHtml += `
-            <div class="flex flex-col sm:flex-row sm:items-center justify-between p-4 bg-gray-50 border rounded-xl gap-4">
-              <span class="flex-1 text-gray-700">${stmt.text}</span>
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between p-4 border-2 ${rowBorderClass} rounded-xl gap-4 transition-all">
+              <span class="flex-1 text-gray-800 font-medium">${stmt.text}</span>
               <div class="flex gap-2 shrink-0">
                 <button onclick="selectTf(${idx}, true)" class="px-4 py-2 rounded-lg font-semibold border-2 transition-all ${btnTrueClass}" ${feedbackMode ? 'disabled' : ''}>Đúng</button>
                 <button onclick="selectTf(${idx}, false)" class="px-4 py-2 rounded-lg font-semibold border-2 transition-all ${btnFalseClass}" ${feedbackMode ? 'disabled' : ''}>Sai</button>
               </div>
-              ${feedbackMode && !isCurrentCorrect ? `<div class="text-sm font-bold text-red-500 w-full sm:w-auto mt-2 sm:mt-0 text-right">Đáp án: ${stmt.is_true ? 'Đúng' : 'Sai'}</div>` : ''}
+              ${rowFeedbackHtml}
             </div>
           `;
         });
@@ -777,7 +800,7 @@
         actionHtml = `<button id="checkBtn" onclick="checkAnswer()" disabled class="w-full bg-gray-300 text-white font-bold py-4 rounded-xl cursor-not-allowed text-lg transition-all">Kiểm tra</button>`;
       } else {
         const fbClass = isCurrentCorrect ? 'bg-green-50 border-green-500 text-green-700' : 'bg-red-50 border-red-500 text-red-700';
-        const fbText = isCurrentCorrect ? '✅ Chính xác! Bạn làm rất tốt.' : '❌ Sai rồi! Câu này sẽ được lưu lại để làm sau.';
+        const fbText = isCurrentCorrect ? '✅ Hoàn toàn chính xác!' : '❌ Sai một vài ý! Câu này sẽ được lưu lại để làm sau.';
         const btnClass = isCurrentCorrect ? 'bg-green-600 hover:bg-green-700' : 'bg-red-600 hover:bg-red-700';
         
         actionHtml = `
@@ -791,7 +814,6 @@
       app.innerHTML = progressHtml + questionHtml + actionHtml;
       if(!feedbackMode) checkReadyBtn();
     }
-
     function renderFinishScreen() {
       document.getElementById('app').innerHTML = `
         <div class="bg-white p-8 rounded-2xl shadow-lg max-w-md w-full text-center mx-auto mt-10">
