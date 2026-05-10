@@ -599,9 +599,22 @@
     let userTfAns = [];
     let userShortAns = "";
 
-    // 3. LOGIC KHỞI TẠO & ĐIỀU HƯỚNG
+   // 3. LOGIC KHỞI TẠO & ĐIỀU HƯỚNG
+
+    // Hàm xáo trộn mảng (Fisher-Yates Shuffle)
+    function shuffleArray(array) {
+      for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+      }
+      return array;
+    }
+
     function initApp() {
-      queue = examData.map(q => q.id);
+      // Lấy danh sách toàn bộ ID câu hỏi và xáo trộn ngẫu nhiên
+      let initialQueue = examData.map(q => q.id);
+      queue = shuffleArray(initialQueue);
+      
       totalQuestions = examData.length;
       stats.wrong = 0;
       loadNextQuestion();
@@ -612,7 +625,7 @@
         renderFinishScreen();
         return;
       }
-      // Lấy câu hỏi đầu tiên trong hàng đợi
+      // Lấy câu hỏi đầu tiên trong hàng đợi (đã được random)
       const currentId = queue[0];
       currentQ = examData.find(q => q.id === currentId);
       
